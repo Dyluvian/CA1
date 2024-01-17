@@ -6,11 +6,12 @@ package ca1;
 
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.Scanner;
 
 // @author DTG Dylan Geraghty
+// https://github.com/Dyluvian/CA1
+// DONE rough version, outputs examples correctly, copes with looping, lots of validations ready, distinction #1 should work
+// TODO Set up menu, fully test validations, additional validations, distinctions #2 and #3, access closure message, general cleanup
 
 public class CA1 {
     public static void main(String[] args) {
@@ -19,14 +20,10 @@ public class CA1 {
         try {
 
 // Readme
-            System.out.println("Explainer TBD");
+            System.out.println("Intro TBD");
 
 // Read in text file
-//          Scanner readStudentsTxt = new Scanner(new FileReader("C:\\Users\\celeb\\Desktop\\POOA\\students.txt")); // What does celeb stand for?
-            Scanner readStudentsTxt = new Scanner(new FileReader("C:\\Users\\User\\Desktop\\students.txt")); // For non-celebrity self testing
-
-// Define the correct format
-            Pattern correctformat = Pattern.compile("[a-zA-Z]{6}[0-9]+\\.?[0-9]*[-]{1}[0-9]+\\.?[0-9]*[o,O,r,R]{1}");
+            Scanner readStudentsTxt = new Scanner(new FileReader("C:\\Users\\User\\Desktop\\students.txt")); // replace with your local path
 
 // If empty
             if (!readStudentsTxt.hasNext()) {
@@ -38,169 +35,100 @@ public class CA1 {
             while (readStudentsTxt.hasNextLine()) {
 
 // Parse to string
-                String studentscurrentline = readStudentsTxt.nextLine();
-                Matcher correctformatmatcher = correctformat.matcher(studentscurrentline);
-                boolean correct = correctformatmatcher.matches();
+                String studentsnameline = readStudentsTxt.nextLine();
+                System.out.println("---\n***** Validating next line. *****");
 
-// Error handling
-                if (studentscurrentline.isEmpty()) {
-                    System.out.println("Input: nothing. No output. This line is blank. Please insert some input.");
+// Validation
+// Validation line 1: If line is empty, throw error
+                if (studentsnameline.isEmpty()) {
+                    System.out.println("Input, line 1: nothing. No output. This line is blank. Please insert some input.");
                     continue;
                 }
-                else if (!studentscurrentline.matches("[a-zA-Z0-9\\-\\.]+")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. Input must consist of only letters, numbers, and hyphens. Please replace any extraneous characters on this line.");
+// Validation line 1: If first line is not empty but first name is invalid, throw error
+                else if (!studentsnameline.matches("[a-zA-Z]+.*")) {
+                    System.out.println("Input, line 1: \"" + studentsnameline + "\". No output. The input must begin with a first name (letters only).");
                     continue;
                 }
-                else if (!studentscurrentline.matches("[a-zA-Z]{6}.*")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. Both currencies must consist of three letters each. Please replace any other input at the start of the line.");
+// Validation line 1: If first name is valid but no space after first name, throw error
+                else if (!studentsnameline.matches("[a-zA-Z]+\\s{1}.*")) {
+                    System.out.println("Input, line 1: \"" + studentsnameline + "\". No output. The first name must be followed by a space. Please insert a space.");
                     continue;
                 }
-                else if (!studentscurrentline.matches("[a-zA-Z]{6}[0-9]+\\.?[0-9]*.*")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. The price of trade must be a number. Please input a number after the currencies (first six letters).");
+// Validation line 1: If space after first name but second name is invalid, throw error
+                else if (!studentsnameline.matches("[a-zA-Z]+\\s{1}[a-zA-Z0-9]+.*")) {
+                    System.out.println("Input, line 1: \"" + studentsnameline + "\". No output. The second name after the space must consist of letters and/or numbers.");
                     continue;
                 }
-                else if (!studentscurrentline.matches("[a-zA-Z]{6}[0-9]+\\.?[0-9]*[-].*")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. There is no hyphen in the correct position. Please input a hyphen after the price of trade.");
-                    continue;
-                }
-                else if (!studentscurrentline.matches("[a-zA-Z]{6}[0-9]+\\.?[0-9]*[-][0-9]+\\.?[0-9]*.*")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. The amount traded must be a number. Please input a number after the initial hyphen.");
-                    continue;
-                }
-                else if (!studentscurrentline.matches("[a-zA-Z]{6}[0-9]+\\.?[0-9]*[-][0-9]+\\.?[0-9]*[o,O,r,R]{1}")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. The final character of each line must be either a single \"R\" (denoting a reversed trade) or a single \"O\". Please input either letter after the amount traded.");
-                    continue;
-                }
-                else if (correct == false) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. The input is not correctly formatted.");
-                    continue;
-                }
-
-// Define each comma-separated value
-                String originatingcurrency = studentscurrentline.substring(0, 3); // originating currency = first 3 characters
-                String destinationcurrency = studentscurrentline.substring(3, 6); // destination currency = next 3 characters
-                String priceoftrade = studentscurrentline.substring(6, studentscurrentline.indexOf('-')); // price of trade = next characters before hyphen
-                String amounttraded = studentscurrentline.substring(studentscurrentline.indexOf('-') + 1, studentscurrentline.length() - 1); // amount traded = next characters before final character
-                String reverseddenotation = studentscurrentline.substring(studentscurrentline.length() - 1); // reversed denotation = final character
-
-// Fix any lowercase
-                String originatingcurrencyfinal = originatingcurrency.toUpperCase();
-                String destinationcurrencyfinal = destinationcurrency.toUpperCase();
-                String reverseddenotationfinal = reverseddenotation.toUpperCase();
-
-// Define output
-                String studentscsvprint = (originatingcurrencyfinal + "," + destinationcurrencyfinal + "," + priceoftrade + "," + amounttraded + "," + reverseddenotationfinal);
-                String studentscsvoutput = (studentscsvprint + "\n");
-
-// More granular errors
-                if (originatingcurrency.equalsIgnoreCase(destinationcurrency)) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. The originating and destination currencies cannot be the same. Please input two different currencies in this position.");
-                }
-                else if (priceoftrade.startsWith(".") || priceoftrade.endsWith(".")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. While decimals are supported, a decimal point must neither begin nor close a number. Please correct the number.");
-                }
-                else if (amounttraded.startsWith(".") || amounttraded.endsWith(".")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. While decimals are supported, a decimal point must neither begin nor close a number. Please correct the number.");
-                }
-                else if (amounttraded.startsWith(".") || amounttraded.endsWith(".")) {
-                    System.out.println("Input: \"" + studentscurrentline + "\". No output. While decimals are supported, a decimal point must neither begin nor close a number. Please correct the number.");
-                }
-
-// Otherwise, write values to csv file and repeat
+// Validation line 1: If second name is valid, confirm, define second name, and check second line
                 else {
-                    FileWriter writeStudentsCsv = new FileWriter("C:\\Users\\celeb\\Desktop\\POOA\\students.csv", true); // For celebs
-//                  FileWriter writeStudentsCsv = new FileWriter("C:\\Users\\User\\Desktop\\students.csv", true); // For testing
-                    writeStudentsCsv.write(studentscsvoutput);
-                    writeStudentsCsv.close();
-                    System.out.println("Input: \"" + studentscurrentline + "\". Output: \"" + studentscsvprint + "\". Processing next line.");
+                    System.out.println("Input, line 1: \"" + studentsnameline + "\". Validated.");
+                    String studentssecondname = studentsnameline.substring(studentsnameline.indexOf(' '));
+                    String numberofclassesline = readStudentsTxt.nextLine();
+// Validation line 2: If second line is empty, throw error
+                    if (numberofclassesline.isEmpty()) {
+                        System.out.println("Input, line 2: nothing. No output. This line is blank. Please insert some input.");
+                        continue;
+                    }
+// Validation line 2: If second line is not empty but number of classes is invalid
+                    else if (!numberofclassesline.matches("[1-8]{1}")) {
+                        System.out.println("Input, line 2: \"" + numberofclassesline + "\". No output. The number of classes may only range from 1 to 8.");
+                        continue;
+                    }
+// Validation line 2: If number of classes is valid, confirm, define workload, and check third line
+                    else {
+                        System.out.println("Input, line 2: \"" + numberofclassesline + "\". Validated.");
+                        String workload = null;
+                        if (numberofclassesline.matches("1")) {
+                            workload = ("Very Light");
+                        }
+                        if (numberofclassesline.matches("2")) {
+                            workload = ("Light");
+                        }
+                        if (numberofclassesline.matches("[3-5]")) {
+                            workload = ("Part Time");
+                        }
+                        if (numberofclassesline.matches("[6-8]")) {
+                            workload = ("Full Time");
+                        }
+                        String studentnumberline = readStudentsTxt.nextLine();
+// Validation line 3: If third line is empty, throw error
+                        if (studentnumberline.isEmpty()) {
+                            System.out.println("Input, line 3: nothing. No output. This line is blank. Please insert some input.");
+                            continue;
+                        }
+// Validation line 3: If third line is not empty but first two characters are not valid numbers
+                        else if (!studentnumberline.matches("[2-9]{1}[0-9]{1}.*")) {
+                            System.out.println("Input, line 3: \"" + studentnumberline + "\". No output. The student number year (first two characters of this line) must be 20 or higher.");
+                            continue;
+                        }
+// Validation line 3: If first two characters are valid numbers but next two characters are not letters
+                        else if (!studentnumberline.matches("[2-9]{1}[0-9]{1}[a-zA-Z]{2}.*")) {
+                            System.out.println("Input, line 3: \"" + studentnumberline + "\". No output. The two characters following the student number (third and fourth characters of this line) must be letters.");
+                            continue;
+                        }
+// Validation TBD line 3: If any letters interrupt the final numerical sequence
+// Validation TBD line 3: If the sequence does not end in numbers
+// Validation line 3: If the third line is valid, confirm, print, and continue
+                        else if (studentnumberline.matches("[2-9]{1}[0-9]{1}[a-zA-Z]{2}[a-zA-Z0-9]{1}[0-9]+")) {
+                            System.out.println("Input, line 3: \"" + studentnumberline + "\". Validated.");
+                            System.out.println("***** Successful! Output: *****\n" + studentnumberline + " -" + studentssecondname + "\n" + workload);
+                            String output = (studentnumberline + " -" + studentssecondname + "\n" + workload + "\n");
+                            FileWriter writeStatusTxt = new FileWriter("C:\\Users\\User\\Desktop\\status.txt", true); // replace with your local path
+                            writeStatusTxt.write(output);
+                            writeStatusTxt.close();
+                            continue;
+                        }
                     }
                 }
-
+                
 // Closure
                 readStudentsTxt.close();
-                System.out.println("---\nAll valid lines have been appended to students.csv.\nHave a wonderful day.");
+                System.out.println("---\nAll valid lines have been appended to status.txt.\nHave a wonderful day.");
             }
-
+        }
 // Try-catch general exception #2
         catch (Exception e) {
             System.out.println("A general error has occurred. Please ensure a valid text file was provided.");
         }
     }
 }
-
-/*---
-
-package refactoredtaxcalculator;
-import java.util.Scanner;
-
-// @author DTG Dylan Geraghty
-
-public class RefactoredTaxCalculator {
-
-// Ask for income
-    public static double getIncome() {
-        Scanner askIncome = new Scanner(System.in);
-        System.out.println("What is your income? Please insert a number.");
-        while (!askIncome.hasNextDouble()) {
-            System.out.println("That was not valid input. Please insert a number.");
-            askIncome.next();
-        }
-        double incomeInput = askIncome.nextDouble();
-        return (incomeInput);
-    }
-
-// USC calculation
-    public static double calculateUSC(double income) {
-        double usc = 0;
-        if (income < 12012) {
-            usc = income * 0.005;
-        } else {
-            usc += 12012 * 0.005;
-            income -= 12012;
-        }
-        if (income < 10908) {
-            usc += income * 0.02;
-        } else {
-            usc += 10908 * 0.02;
-            income -= 10908;
-            }
-        if (income < 47198) {
-            usc += income * 0.04;
-        } else {
-            usc += 47198 * 0.04;
-            income -= 47198;
-            usc += income * 0.08;
-        }
-        return (usc);
-    }
-
-// PRSI calculation
-    public static double calculatePRSI(double income) {
-        double prsi = income * 0.04;
-        return (prsi);
-    }
-
-// PAYE calculation
-    public static double calculatePAYE(double income) {
-            double payeCutoff = 40000;
-            double paye = 0;
-            if (income > payeCutoff) {
-                paye += payeCutoff * 0.2;
-                paye += (income - payeCutoff) * 0.4;
-            } else {
-                paye = income * 0.2;
-            }
-        return (paye);
-    }
-
-// Main method. "Does not need to look exactly like this", but meh why not
-    public static void main(String[] args) {
-        double income = getIncome();
-        double usc = calculateUSC(income);
-        double prsi = calculatePRSI(income);
-        double paye = calculatePAYE(income);
-
-        double tax = usc + prsi + paye;
-        System.out.println("Your tax is: " + tax);
-    }
-}*/
